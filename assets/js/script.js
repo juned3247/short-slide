@@ -18,7 +18,7 @@ jQuery( document ).ready( function() {
 		var formData = new FormData();
 		formData.append('file', file);
 		jQuery.ajax({
-			url: 'http://wordpress-assignment.tk/wp-json/short-slide/v1/image_upload',
+			url: '/wp-json/short-slide/v1/image_upload',
 			method: 'POST',
 			headers: wpHeaders,
 			processData: false,
@@ -46,7 +46,7 @@ function deleteImage(imageId) {
 	formData.append('image_id', imageId);
 		
 	jQuery.ajax({
-		url: 'http://wordpress-assignment.tk/wp-json/short-slide/v1/image_delete',
+		url: '/wp-json/short-slide/v1/image_delete',
 		method: 'POST',
 		headers: wpHeaders,
 		processData: false,
@@ -66,7 +66,7 @@ function deleteImage(imageId) {
 function loadPhotos() {
 	jQuery('#photos').empty();
 	jQuery.ajax({
-		url: 'http://wordpress-assignment.tk/wp-json/short-slide/v1/get_images',
+		url: '/wp-json/short-slide/v1/get_images',
 		method: 'GET',
 		headers: wpHeaders,
 		processData: false,
@@ -103,7 +103,7 @@ function createPhotosSortable() {
 			var formData = new FormData();
 			formData.append('new_list', JSON.stringify(sorted));
 			jQuery.ajax({
-				url: 'http://wordpress-assignment.tk/wp-json/short-slide/v1/sort_list',
+				url: '/wp-json/short-slide/v1/sort_list',
 				method: 'POST',
 				headers: wpHeaders,
 				processData: false,
