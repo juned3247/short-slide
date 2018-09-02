@@ -13,10 +13,12 @@ jQuery( document ).ready( function() {
 			return;
 		}
 
-		var file = jQuery('#ss_myfile')[0].files[0];
+		var files = jQuery('#ss_myfile')[0].files;
 
 		var formData = new FormData();
-		formData.append('file', file);
+		for(let i = 0; i < files.length; i++) {
+			formData.append('files[]', files[i]);
+		}
 		jQuery.ajax({
 			url: '/wp-json/short-slide/v1/image_upload',
 			method: 'POST',

@@ -23,7 +23,7 @@ function myplugin_options_page() {
     
 	<form method="post">
         <label for="ss_myfile">Upload an Image</label>
-        <input type="file" id="ss_myfile" accept="image/jpeg,image/jpg,image/png,image/x-png"/><br/>
+        <input type="file" id="ss_myfile" accept="image/jpeg,image/jpg,image/png,image/x-png" multiple/><br/>
         <input type="button" id="ss_submit" value="Submit"/>
     </form>
 	<?php
@@ -165,22 +165,23 @@ function delete_image_callback(WP_REST_Request $request) {
 function my_upload_func(WP_REST_Request $request) {
     $files   = $request->get_file_params();
 
-    $file = ss_upload_file( $files);
-	if ( is_wp_error( $file ) ) {
-		return $file;
+    $uploaded_files = ss_upload_file( $files);
+    for($i = 0; $i < count($uploaded_files); $i++) {
+        if ( is_wp_error( $uploaded_files[$i] ) ) {
+            return $uploaded_files[$i];
+        }
     }
 
-    $record_id = create_database_entry($file);
-    $file_type = gettype($file);
-    
-    $r = array(
-        "success" => true,
-        "upload" => "done",
-        "file" => $file,
-        "gettype" => $file_type,
-        "record_id" => $record_id
+    $result = create_database_entry($uploaded_files);
+
+    if($result === false) {
+        return array(
+            'success' => false
+        );
+    }
+    return array(
+        'success' => true
     );
-    return $r;
 }
 
 function ss_upload_file( $files) {
@@ -194,11 +195,29 @@ function ss_upload_file( $files) {
 		$overrides['action'] = 'wp_handle_mock_upload';
 	}
 	require_once ABSPATH . 'wp-admin/includes/admin.php';
-	$file = wp_handle_upload( $files['file'], $overrides );
-	if ( isset( $file['error'] ) ) {
-		return new WP_Error( 'rest_upload_unknown_error', $file['error'], array( 'status' => 500 ) );
-	}
-	return $file;
+	$result_uploads = my_multiple_wp_handle_upload( $files['files'], $overrides );
+	return $result_uploads;
+}
+
+function my_multiple_wp_handle_upload($files, $overrides) {
+    $result_uploads = array();
+    foreach ($files['name'] as $key => $value) {
+        if ($files['name'][$key]) {
+            $file = array (
+                'name' => $files['name'][$key],
+                'type' => $files['type'][$key],
+                'tmp_name' => $files['tmp_name'][$key],
+                'error' => $files['error'][$key],
+                'size' => $files['size'][$key]
+            );
+            $result = wp_handle_upload($file, $overrides);
+            if ( isset( $result['error'] ) ) {
+                return new WP_Error( 'rest_upload_unknown_error', $result['error'], array( 'status' => 500 ) );
+            }
+            $result_uploads[] = $result;
+        }
+    }
+    return $result_uploads;
 }
 
 function create_short_slide_table() {
@@ -219,17 +238,19 @@ function create_short_slide_table() {
     }
 }
 
-function create_database_entry($file) {
+function create_database_entry($files) {
     global $wpdb;
     $count = (int) $wpdb->get_var("SELECT MAX(sort_order) FROM wp_short_slide WHERE is_deleted = 0");
-    $wpdb->insert(
-        'wp_short_slide',
-        array(
-            "image_url"=>$file['url'],
-            'sort_order' =>$count + 1
-        )
-    );
-    return $wpdb->insert_id;
+    $query = 'INSERT INTO wp_short_slide (image_url, sort_order) VALUES ';
+    $count_arr = count($files);
+    for($i = 0; $i < $count_arr; $i++) {
+        $query .= "('" . $files[$i]['url'] . "', " . ($count + $i + 1) . ")";
+        if ($i != $count_arr - 1) {
+            $query .= ', ';
+        }
+    }
+    $result = $wpdb->query($query);
+    return $result;
 }
 
 function get_all_photos_from_database() {
