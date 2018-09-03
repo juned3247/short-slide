@@ -21,6 +21,10 @@ function myplugin_options_page() {
     Note: Right click on photo(long press for mobile phone) to delete it.<br/>
     Drag photos to re-arrange it.<br/><br/>
     
+    <div id="upload_progress">
+        <div id="upload_progress_bar"></div>
+    </div>
+    
 	<form method="post">
         <label for="ss_myfile">Upload an Image</label>
         <input type="file" id="ss_myfile" accept="image/jpeg,image/jpg,image/png,image/x-png" multiple/><br/>

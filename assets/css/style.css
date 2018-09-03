@@ -4,3 +4,15 @@
     height: auto !important;
     margin: 10px;
 }
+
+#upload_progress {
+    width: 100%;
+    background-color: #ddd;
+    display: none;
+}
+
+#upload_progress_bar {
+    width: 1%;
+    height: 6px;
+    background-color: #4CAF50;
+}

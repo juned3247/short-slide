@@ -25,14 +25,25 @@ jQuery( document ).ready( function() {
 			headers: wpHeaders,
 			processData: false,
 			contentType: false,
-			data: formData
+			data: formData,
+			xhr: function () {
+				var myXhr = jQuery.ajaxSettings.xhr();
+                if(myXhr.upload){
+                    myXhr.upload.addEventListener('progress',progress_upload, false);
+                }
+                return myXhr;
+			}
 		}).success(function (response) {
 			console.log(response);
 			jQuery('#ss_myfile').val(null);
 			loadPhotos();
+			jQuery('#upload_progress').css('display', 'none');
+			jQuery('#upload_progress_bar').css('width', '1%');
 		}).error(function (response) {
 			console.log('error');
 			console.error(response);
+			jQuery('#upload_progress').css('display', 'none');
+			jQuery('#upload_progress_bar').css('width', '1%');
 		});
 	});
 
@@ -131,4 +142,12 @@ function createDeleteContext() {
 			deleteImage(imageId);
 		}
 	});
+}
+
+function progress_upload (e) {
+	if (e.lengthComputable) {
+		var percentage = e.loaded * 100 / e.total;
+		jQuery('#upload_progress').css('display', 'block');
+		jQuery('#upload_progress_bar').css('width', percentage + '%');
+	}
 }
