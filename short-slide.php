@@ -9,7 +9,14 @@
 function myplugin_options_page() {
 	?>
 
-	<h2><?php esc_html_e( 'Photos', 'rest-uploader' ); ?></h2>
+    <h2><?php esc_html_e( 'Photos', 'rest-uploader' ); ?></h2>
+    
+    <button id="delete_photos_button" class="wp-core-ui button button-primary">Delete photos</button>
+    <button id="delete_selected_button" class="wp-core-ui button button-primary">Delete selected</button>
+    <div id="multiple_select_note">
+        control + click to multiple select.<br/>
+        click 'Delete photos' again to toggle to sorting mode.
+    </div>
 
     <div id="photos">
 
@@ -18,8 +25,7 @@ function myplugin_options_page() {
             ?>
             
     </div>
-    Note: Right click on photo(long press for mobile phone) to delete it.<br/>
-    Drag photos to re-arrange it.<br/><br/>
+    Note: Drag photos to re-arrange it.<br/><br/>
     
     <div id="upload_progress">
         <div id="upload_progress_bar"></div>
@@ -149,21 +155,25 @@ function get_images_callback(WP_REST_Request $request) {
 
 function delete_image_callback(WP_REST_Request $request) {
     global $wpdb;
-    $result = $wpdb->update(
-        'wp_short_slide',
-        array('is_deleted' => 1, 'sort_order' => 'NULL'),
-        array('image_id' => (int)$request['image_id'])
-    );
-    $r = array();
-    if($result === false) {
-        $r = array(
+    $image_ids = $request['image_ids'];
+    $query = 'UPDATE wp_short_slide SET is_deleted = 1, sort_order = NULL WHERE image_id IN (';
+    $count_imageids = count($image_ids);
+    for($i = 0; $i < $count_imageids; $i++) {
+        $query .= $image_ids[$i];
+        if($i != $count_imageids - 1) {
+            $query .= ', ';
+        }
+    }
+    $query .= ')';
+    $result = $wpdb->query($query);
+    if ($result === false) {
+        return array(
             'success' => false
         );
     }
-    $r = array(
+    return array(
         'success' => true
     );
-    return $r;
 }
 
 function my_upload_func(WP_REST_Request $request) {

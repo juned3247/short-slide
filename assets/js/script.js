@@ -1,3 +1,4 @@
+var ssmode = true;
 jQuery( document ).ready( function() {
 
 	wpHeaders = {
@@ -52,12 +53,53 @@ jQuery( document ).ready( function() {
 		var imageId = jQuery(this).attr('imageid');
 		deleteImage(imageId);
 	});
+
+	jQuery('#delete_photos_button').click(function (e) {
+		e.preventDefault();
+		toggleMode(ssmode);
+	});
+
+	jQuery('#delete_selected_button').click(function (e) {
+		e.preventDefault();
+		var selected_images = new Array();
+		jQuery('#photos').children().each(function (a) {
+			if (jQuery(this).hasClass('ui-selected')) {
+				selected_images.push(jQuery(this).attr('imageid'));
+			}
+		});
+		deleteImages(selected_images);
+	});
 });
 
-function deleteImage(imageId) {
+function toggleMode() {
+	ssmode = !ssmode;
+	if(ssmode) {
+		// switch to sorting mode
+		console.log('switch to sorting mode');
+		jQuery('#delete_selected_button, #multiple_select_note').hide();
+		jQuery('#photos').selectable(null);
+		jQuery('#photos').children().each(function () {
+			jQuery(this).removeClass('ui-selectee');
+			jQuery(this).removeClass('ui-selected');
+		});
+		jQuery('#photos').sortable('enable');
+	} else {
+		// switch to selection mode
+		console.log('switch to selection mode');
+		jQuery('#delete_selected_button, #multiple_select_note').show();
+		jQuery('#photos').sortable('disable');
+		jQuery('#photos').children().each(function () {
+			jQuery(this).addClass('ui-selectee');
+		});
+		jQuery('#photos').selectable();
+	}
+}
+
+function deleteImages(imageIds) {
 	var formData = new FormData();
-	formData.append('image_id', imageId);
-		
+	for(let i = 0; i < imageIds.length; i++) {
+		formData.append('image_ids[]', imageIds[i]);
+	}
 	jQuery.ajax({
 		url: '/wp-json/short-slide/v1/image_delete',
 		method: 'POST',
@@ -68,7 +110,10 @@ function deleteImage(imageId) {
 	}).success(function (response) {
 		console.log(response);
 		if(response.success) {
-			jQuery('img[imageid=' + imageId + ']').remove();
+			for(let i = 0; i < imageIds.length; i++) {
+				jQuery('img[imageid=' + imageIds[i] + ']').remove();
+			}
+			toggleMode();
 		}
 	}).error(function (response) {
 		console.log('error');
@@ -93,7 +138,6 @@ function loadPhotos() {
 				photoele.appendTo('#photos');
 			}
 			createPhotosSortable();
-			createDeleteContext();
 		} else {
 			console.log(error);
 			console.log(response);
@@ -131,17 +175,6 @@ function createPhotosSortable() {
 		}
 	});
 	jQuery('#photos').disableSelection();
-}
-
-function createDeleteContext() {
-	jQuery('#photos img').contextmenu(function (e) {
-		e.preventDefault();
-		var conf = confirm('Do you want to delete this image?');
-		if(conf) {
-			var imageId = jQuery(this).attr('imageid');
-			deleteImage(imageId);
-		}
-	});
 }
 
 function progress_upload (e) {

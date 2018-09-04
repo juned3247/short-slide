@@ -16,3 +16,15 @@
     height: 6px;
     background-color: #4CAF50;
 }
+
+#photos > img.ui-selectee {
+    outline: thick solid green;
+}
+
+#photos > img.ui-selected {
+    outline: thick solid red;
+}
+
+#delete_selected_button, #multiple_select_note {
+    display: none;
+}
