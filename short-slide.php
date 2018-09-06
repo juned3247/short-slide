@@ -307,11 +307,22 @@ function show_slideshow () {
     <?php
 }
 
+function enqueue_shortcode_plugin_script($plugin_array) {
+    $plugin_array["shortcode_slideshow"] =  plugins_url( '/assets/js/shortcode-slideshow-plugin.js?v='.time(), __FILE__ );
+    return $plugin_array;
+}
+
+function register_button_editor($buttons)
+{
+    array_push($buttons, '|', "shortcode_slideshow");
+    return $buttons;
+}
+
 add_shortcode('myslideshow', 'show_slideshow');
 add_action('admin_menu', 'myplugin_register_options_page');
-add_action( 'wp_enqueue_scripts', 'ss_scripts_include');
+add_action('wp_enqueue_scripts', 'ss_scripts_include');
+add_filter("mce_external_plugins", "enqueue_shortcode_plugin_script");
+add_filter("mce_buttons", "register_button_editor");
 
 register_activation_hook( __FILE__, 'create_short_slide_table' );
-
-
 ?>
