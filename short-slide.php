@@ -154,9 +154,9 @@ function get_images_callback(WP_REST_Request $request) {
 }
 
 function delete_image_callback(WP_REST_Request $request) {
-    global $wpdb;
+    global $wpdb, $table_prefix;
     $image_ids = $request['image_ids'];
-    $query = 'UPDATE wp_short_slide SET is_deleted = 1, sort_order = NULL WHERE image_id IN (';
+    $query = "UPDATE " . $table_prefix . "short_slide SET is_deleted = 1, sort_order = NULL WHERE image_id IN (";
     $count_imageids = count($image_ids);
     for($i = 0; $i < $count_imageids; $i++) {
         $query .= $image_ids[$i];
@@ -253,9 +253,9 @@ function create_short_slide_table() {
 }
 
 function create_database_entry($files) {
-    global $wpdb;
-    $count = (int) $wpdb->get_var("SELECT MAX(sort_order) FROM wp_short_slide WHERE is_deleted = 0");
-    $query = 'INSERT INTO wp_short_slide (image_url, sort_order) VALUES ';
+    global $wpdb, $table_prefix;
+    $count = (int) $wpdb->get_var("SELECT MAX(sort_order) FROM " . $table_prefix . "short_slide WHERE is_deleted = 0");
+    $query = "INSERT INTO " . $table_prefix . "short_slide (image_url, sort_order) VALUES ";
     $count_arr = count($files);
     for($i = 0; $i < $count_arr; $i++) {
         $query .= "('" . $files[$i]['url'] . "', " . ($count + $i + 1) . ")";
@@ -268,14 +268,14 @@ function create_database_entry($files) {
 }
 
 function get_all_photos_from_database() {
-    global $wpdb;
-    $query="SELECT image_id, image_url FROM wp_short_slide WHERE is_deleted = 0 ORDER BY sort_order";
+    global $wpdb, $table_prefix;
+    $query="SELECT image_id, image_url FROM " . $table_prefix . "short_slide WHERE is_deleted = 0 ORDER BY sort_order";
     return $wpdb->get_results($query);
 }
 
 function update_sort_into_database($new_sort) {
-    global $wpdb;
-    $query = 'UPDATE wp_short_slide SET sort_order = (CASE ';
+    global $wpdb, $table_prefix;
+    $query = "UPDATE " . $table_prefix . "short_slide SET sort_order = (CASE ";
     for ($i = 0; $i < count($new_sort); $i++) {
         $query .= "WHEN image_id = " . $new_sort[$i] . " THEN " . ($i+1). " ";
     }
